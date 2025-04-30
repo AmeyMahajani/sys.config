@@ -1,0 +1,78 @@
+# Step 1: Update package list and install prerequisites
+sudo apt update
+sudo apt install wget tar nano -y
+
+# Step 2: Install Java (OpenJDK 11)
+sudo apt install openjdk-11-jdk -y
+
+# Step 3: Configure Java 11 as default if multiple versions exist
+sudo update-alternatives --config java  # Select Java 11 if prompted
+sudo update-alternatives --config javac  # Select Java 11 compiler if prompted
+
+# Step 4: Verify Java version
+java -version  # Should show openjdk 11.x.x (e.g., 11.0.26)
+
+# Step 5: Clean up previous Scala and Spark installations (if any)
+sudo rm -rf /opt/scala /opt/spark
+rm -f *.tgz  # Remove any leftover tar files
+
+# Step 6: Clean up old environment variables from ~/.bashrc
+sed -i '/JAVA_HOME/d' ~/.bashrc
+sed -i '/SCALA_HOME/d' ~/.bashrc
+sed -i '/SPARK_HOME/d' ~/.bashrc
+sed -i '/PATH.*scala/d' ~/.bashrc
+sed -i '/PATH.*spark/d' ~/.bashrc
+
+# Step 7: Install Scala 2.12.17
+wget https://downloads.lightbend.com/scala/2.12.17/scala-2.12.17.tgz
+tar xzf scala-2.12.17.tgz
+sudo mv scala-2.12.17 /opt/scala
+sudo chown -R $USER:$USER /opt/scala
+rm scala-2.12.17.tgz
+
+# Step 8: Install Apache Spark 3.4.4
+wget https://dlcdn.apache.org/spark/spark-3.4.4/spark-3.4.4-bin-hadoop3.tgz
+tar xvf spark-3.4.4-bin-hadoop3.tgz
+sudo mv spark-3.4.4-bin-hadoop3 /opt/spark
+sudo chown -R $USER:$USER /opt/spark
+rm spark-3.4.4-bin-hadoop3.tgz
+
+# Step 9: Set environment variables for Java, Scala, and Spark
+echo 'export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64' >> ~/.bashrc
+echo 'export SCALA_HOME=/opt/scala' >> ~/.bashrc
+echo 'export SPARK_HOME=/opt/spark' >> ~/.bashrc
+echo 'export PATH=$JAVA_HOME/bin:$SCALA_HOME/bin:$SPARK_HOME/bin:$PATH' >> ~/.bashrc
+
+# Step 10: Apply environment changes
+source ~/.bashrc
+
+# Step 11: Verify installations
+java -version  # Should show openjdk 11.x.x (e.g., 11.0.26)
+scala -version  # Should show Scala 2.12.17
+spark-shell --version  # Should show Spark 3.4.4
+
+# Step 12: Test Spark shell
+spark-shell  # Should start Spark session with Spark 3.4.4; exit with :q or Ctrl+D
+# Inside spark-shell, run: spark.version
+# Should return: res0: String = 3.4.4
+
+# Step 13: Create and test a sample Scala file
+echo 'import org.apache.spark.sql.SparkSession
+
+object TestApp {
+  def main(args: Array[String]): Unit = {
+    val spark = SparkSession.builder()
+      .appName("TestApp")
+      .master("local[*]")
+      .getOrCreate()
+
+    val data = Seq(("Alice", 25), ("Bob", 30))
+    val df = spark.createDataFrame(data).toDF("Name", "Age")
+    df.show()
+
+    spark.stop()
+  }
+}' > test.scala
+
+# Step 14: Run the Scala code in spark-shell
+spark-shell -i test.scala  # Should display a DataFrame with Name and Age

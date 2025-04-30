@@ -1,0 +1,104 @@
+# How to Uninstall Hadoop from Your System
+
+Here's a step-by-step guide to completely removing Hadoop from your Linux/macOS system using terminal commands.
+
+## Method 1: If Installed via Package Manager
+
+### For Ubuntu/Debian:
+bash
+sudo apt-get remove --purge hadoop*
+sudo apt-get autoremove
+sudo apt-get clean
+
+
+### For CentOS/RHEL:
+bash
+sudo yum remove hadoop*
+sudo yum autoremove
+
+
+## Method 2: Manual Uninstallation
+
+If you installed Hadoop manually, follow these steps:
+
+### 1. Stop all Hadoop services
+bash
+stop-all.sh  # or stop-dfs.sh and stop-yarn.sh separately
+
+
+### 2. Remove Hadoop directories
+bash
+# Remove installation directory (default is /usr/local/hadoop)
+sudo rm -rf /usr/local/hadoop
+
+# Remove Hadoop data directories
+sudo rm -rf /tmp/hadoop*
+sudo rm -rf /var/hadoop*
+sudo rm -rf /app/hadoop/tmp
+
+
+### 3. Remove Hadoop user (if created)
+bash
+sudo deluser hadoop
+sudo delgroup hadoop
+
+
+### 4. Clean up environment variables
+Edit these files to remove Hadoop-related entries:
+bash
+sudo nano /etc/environment
+sudo nano ~/.bashrc
+sudo nano ~/.bash_profile
+sudo nano ~/.profile
+
+
+Remove lines containing:
+- HADOOP_HOME
+- HADOOP_MAPRED_HOME
+- HADOOP_COMMON_HOME
+- HADOOP_HDFS_HOME
+- YARN_HOME
+- Any Hadoop-related PATH additions
+
+### 5. Reload environment
+bash
+source ~/.bashrc
+
+
+### 6. Remove Hadoop from Java classpath
+Check and clean:
+bash
+sudo nano /etc/profile.d/java.sh
+
+
+### 7. Verify removal
+bash
+which hadoop  # Should return nothing
+hadoop version  # Should show "command not found"
+
+
+## Additional Cleanup (if needed)
+
+### Remove Hadoop logs:
+bash
+sudo rm -rf /var/log/hadoop*
+
+
+### Remove configuration files:
+bash
+sudo rm -rf /etc/hadoop
+
+
+### Remove temporary files:
+bash
+sudo rm -rf /tmp/hsperfdata_*
+
+
+## Important Notes
+
+1. Backup any important data from HDFS before uninstalling
+2. If you're using a managed Hadoop distribution (Cloudera, Hortonworks), use their uninstall tools
+3. Some residual files might remain in user home directories (~/.hadoop, ~/.hdfs)
+4. For complete removal, you may also want to uninstall Java if it was installed solely for Hadoop
+
+After completing these steps, Hadoop should be completely removed from your system.
